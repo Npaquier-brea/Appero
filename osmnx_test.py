@@ -15,7 +15,6 @@ def save(graph, place):
     print('saved')
 
 
-
 def load(place):
     try:
         with open('data/' + place + '.obj', 'rb') as file:
@@ -41,12 +40,18 @@ def main():
 
     if city == None:
         city = ox.graph_from_place(place)
-        G = ox.utils_graph.remove_isolated_nodes(city)
-        list = NodesToList(G)
-        for (a, b) in list:
-            print((a, b))
         save(city, place)
-    print(load)
+
+    city = ox.utils_graph.remove_isolated_nodes(city)
+    adj = []
+    nodes = list(city.nodes)
+    for src, dst in city.adjacency():
+        succ = []
+        for key in dst.keys():
+            succ.append(nodes.index(key))
+        adj.append(succ)
+
+    print(adj)
     ox.plot_graph(city)
 
 if __name__ == '__main__':
