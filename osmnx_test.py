@@ -26,6 +26,15 @@ def load(place):
     except:
         return None
 
+def isEulerian(adjList):
+    count = 0
+    for e in adjList:
+        if len(e) % 2 != 0:
+            count += 1
+        if count > 2:
+            return False
+    return True
+
 def NodesToList(G):
     resList = []
     nodes = list(G.nodes())
@@ -52,7 +61,9 @@ def main():
         adj.append(succ)
 
     print(adj)
-    ox.plot_graph(city)
+    number_of_nodes = len(adj)
+    print("'" + place + "'", "has", number_of_nodes, "of nodes and",  len(city.edges()), "edges")
+    print("isEulerian :", isEulerian(adj))
 
 if __name__ == '__main__':
     main()
