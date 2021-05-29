@@ -1,3 +1,4 @@
+from networkx.algorithms.components import connected
 from networkx.readwrite import adjlist
 from numpy import integer
 import osmnx as ox
@@ -6,6 +7,7 @@ import pickle
 import os
 
 DIR = 'data'
+MAX = 9223372036854775807
 
 def save(graph, place):
     if not os.path.exists(DIR):
@@ -52,35 +54,49 @@ def is_connected(G):
     return not False in verif
 
 def dijkstra(i,j, adjlist):
+    #print("adjlist in dijkstra:")
+    #print(adjlist)
     queue = []
-    queue.append(([i],0))
-    smallestweight = 20000
+    queue.append(([(i,0)],0))
+    smallestweight = MAX
     path = []
     while queue:
         (current, currentweight) = queue.pop()
-        for (voisin, poids) in  adjlist[current[-1]]:
+        for (voisin, poids) in  adjlist[current[-1][0]]:
             if voisin == j:
                 if (currentweight + poids) < smallestweight:
                     smallestweight = currentweight + poids
-                    path = current
+                    path = current + [(voisin,poids)]
             elif (currentweight + poids) < smallestweight:
-                queue.append((current + [voisin] ,currentweight + poids))
-    return path
+                queue.append((current + [(voisin,poids)] ,currentweight + poids))
+    return (smallestweight, path)
 
 def addpath(path, adjlist):
-    for i in path:
-        adjlist[i[1]].append((i[0], i[2]))
-        adjlist[i[0]].append((i[1], i[2]))
+    precedent = None
+    for (node,poids) in path:
+        if precedent == None:
+            precedent = node
+            continue
+        adjlist[precedent].append((node, poids))
+        adjlist[node].append((precedent, poids))
+        precedent = node
     return adjlist
 
-def repair(oddslist, adjlist):
+def optirepair(oddslist, adjlist):
+    #Amelioration de temps mais perte d'opti de trajet:
+    #Chercher le chemin le plus cours pour oddlist[0] jusqu'à [1] while oddlist
+    print("start repair")
+    print(oddslist)
     while oddslist:
+        print(1)
         smallestpath = (0, 1)
-        currentdist = integer.max
+        currentdist = 20000 #tester avec MAX une fois que ça marche
         path =[]
-        for i in range(len(oddslist)-1):
+        for i in range(0,len(oddslist)-1):
+            print(2)
             for j in range (i+1, len(oddslist)):
-                (tmp, pathtmp) = dijkstra(i,j, adjlist)
+                print(3)
+                (tmp, pathtmp) = dijkstra(oddslist[i],oddslist[j], adjlist)
                 if tmp < currentdist:
                     smallestpath = (i,j)
                     currentdist = tmp
@@ -88,13 +104,33 @@ def repair(oddslist, adjlist):
         addjlist = addpath(path, adjlist)
         oddslist.remove(smallestpath[0])
         oddslist.remove(smallestpath[1])
+    print("repair ending")
+    return adjlist
+
+def fasterrepair(oddslist, adjlist):
+    #Amelioration de temps mais perte d'opti de trajet:
+    #Chercher le chemin le plus cours pour oddlist[0] jusqu'à [1] while oddlist
+    print("start repair")
+    while oddslist:
+        path =[]
+        (tmp, pathtmp) = dijkstra(oddslist[0],oddslist[1], adjlist)
+        smallestpath = (oddslist[0],oddslist[1])
+        currentdist = tmp
+        path = pathtmp
+        addjlist = addpath(path, adjlist)
+        oddslist.remove(smallestpath[0])
+        oddslist.remove(smallestpath[1])
+    print("repair ending")
+    return adjlist
 
 def to_Eulerian(adjlist):
     oddslist = []
-    for i in len(adjlist):
-        if len(adjlist[i]) % 2 != 1:
+    for i in range(0,len(adjlist)):
+        if len(adjlist[i]) % 2 != 0:
             oddslist.append(i)
-    repair(oddslist, adjlist)
+    #print("oddslist:")
+    #print(oddslist)
+    adjlist = fasterrepair(oddslist, adjlist)
     return adjlist
 
 def NodesToList(G):
@@ -128,9 +164,13 @@ def main1():
     print("isEulerian :", isEulerian(adj))
 
 def main():
-    adjlist = [[(1,1),(6,8)],[(0,1),(2,1)],[(1,1),(3,1)],[(2,1),(4,1)],[(3,1),(5,1)],[(4,1),(6,1)],[(5,1),(0,8)]]
-    path = dijkstra(0,6, adjlist)
-    print(path)
+    adjlist = [[(1,1),(6,8),(2,3)],[(0,1),(2,1),(4,1)],[(1,1),(3,7),(0,3)],[(2,1),(4,1)],[(3,1),(5,1),(1,1)],[(4,1),(6,1)],[(5,1),(0,8)]]
+    #path = dijkstra(0,6, adjlist)
+    #print("path found with dijkstra:")
+    #print(path)
+    adjlist = to_Eulerian(adjlist)
+    print("adjlist after repair:")
+    print(adjlist)
 
 if __name__ == '__main__':
     main()
