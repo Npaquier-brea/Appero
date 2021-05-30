@@ -5,7 +5,7 @@ import osmnx as ox
 import matplotlib.pyplot as plt
 import pickle
 import os
-
+import time
 MAX = 9223372036854775807
 def isEulerian(adjList):
     count = 0
@@ -47,16 +47,18 @@ def di_dijkstra(i,j, adjlist):
     #print("DIJKSTRA")
     queue = []
     queue.append(([(i,0)],0))
-    smallestweight = MAX
+    smallestweight = 2000 #remettre MAX une fois que ça marche
     path = []
     visited = [False] * len(adjlist)
     while queue:
         #print("Boucle:")
         #print("\tqueue = ",queue)
         (current, currentweight) = queue.pop()
+        print(current)
         visited[current[-1][0]] = True
         #print("\tcurrent = ",current)
         #print("\t CurrentAdj = ",adjlist[current[-1][0]])
+        print("Adj[Current] = ",adjlist[current[-1][0]])
         for (voisin, poids) in adjlist[current[-1][0]][1]:
             if visited[voisin] == True:
                 continue
@@ -66,6 +68,7 @@ def di_dijkstra(i,j, adjlist):
                     path = current + [(voisin,poids)]
             elif (currentweight + poids) < smallestweight:
                 queue.append((current + [(voisin,poids)], currentweight + poids))
+        time.sleep(4)
     return (smallestweight, path)
 
 def dijkstra(i,j, adjlist):
@@ -95,24 +98,20 @@ def change_degre(i, new_degree, adjlist):
     return adjlist
 
 def di_addpath(path, adjlist):
+    print("path :", path)
     precedent = None
     for (node,poids) in path:
         if precedent == None:
             precedent = node
             continue
-        print("precedent = ", end="")
-        print(precedent)
-        print("node = ", end="")
-        print(node)
-        print("Degre = ", end="")
-        print(adjlist[precedent][0])
-        print(adjlist[precedent])
+        print("\tprecedent = ",precedent)
+        print("\tnode = ",node)
+        print("\tDegre = ", adjlist[precedent][0])
         print(type(adjlist[precedent][0]))
-        adjlist[precedent] = (adjlist[precedent][0] -1, adjlist[precedent][1])
-        adjlist[node] = (adjlist[node][0] + 1, adjlist[node][1])
-        adjlist[precedent][1].append((node, poids))
+        adjlist[precedent] = (adjlist[precedent][0] +1, adjlist[precedent][1])
+        adjlist[node] = (adjlist[node][0] - 1, adjlist[node][1])
+        adjlist[node][1].append((precedent, poids))
         precedent = node
-    return adjlist
 
 def addpath(path, adjlist):
     precedent = None
@@ -127,6 +126,8 @@ def addpath(path, adjlist):
 
 def di_optirepair(oddslist_neg, oddslist_pos, adjlist):
     print("Starting Repair")
+    print(oddslist_neg)
+    print(oddslist_pos)
     while oddslist_pos:
         smallestpath = (None, None)
         currentdist = MAX
@@ -137,13 +138,12 @@ def di_optirepair(oddslist_neg, oddslist_pos, adjlist):
                 if tmp < currentdist:
                     smallestpath = (oddslist_pos[i], oddslist_neg[j])
                     path = pathtmp
-        adjlist = di_addpath(path, adjlist)
+        di_addpath(path, adjlist)
         if adjlist[smallestpath[0]][0] == 0:
             oddslist_pos.remove(smallestpath[0])
         if adjlist[smallestpath[1]][0] == 0:
-            oddslist_pos.remove(smallestpath[1])
+            oddslist_neg.remove(smallestpath[1])
     print("Repair Ending")
-    return adjlist
 
 def optirepair(oddslist, adjlist):
     print("Starting Repair")
@@ -198,8 +198,7 @@ def Di_to_Eulerian(adjlist):
             oddslist_neg.append(i)
         if adjlist[i][0] > 0:
             oddlist_positif.append(i)
-    adjlist = di_optirepair(oddlist_positif, oddslist_neg, adjlist)
-    return adjlist
+    di_optirepair(oddlist_positif, oddslist_neg, adjlist)
 
 def NodesToList(G):
     resList = []

@@ -7,7 +7,7 @@ def remove_edge(adjlist, start, to, weight):
     for i in range(len(adjlist[start][1])):
         (node, poids) = adjlist[start][1][i]
         if node == to and poids == weight:
-            adjlist[start].pop(i)
+            adjlist[start][1].pop(i)
             break
 
 def Reachable(adjlist,u, visited):
@@ -33,6 +33,7 @@ def isValidNext(adjlist, u, v, weight):
     return False if reachable1 > reachable2 else True
 
 def EulerFromNode(adjlist, u, L):
+    print("node = ", u, "\nadjlist = ",adjlist, "\nL = ",L)
     for (node, weight) in adjlist[u][1]:
         #print("Euler node:",u)
         #verif = isValidNext(adjlist, u, node, weight)
