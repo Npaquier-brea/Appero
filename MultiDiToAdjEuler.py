@@ -229,3 +229,5 @@ def DiGraph_to_Diadjlist(G):
     for (i,j,p) in list(G.edges(data="length", default=1)):
         res[Trad.index(i)][1].append((Trad.index(j),p))
     return (Trad,res)
+
+

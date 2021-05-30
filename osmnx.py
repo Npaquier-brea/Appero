@@ -102,11 +102,15 @@ def main():
     #print(di_adjlist)
     print("############################")
     print("Euler: ")
-    L = Difind.Euler(di_adjlist)
-    for e in L:
-        print("\t",e)
+    #L = Difind.Euler(di_adjlist)
+    EulerianCycle = Difind.FindDIEulerianCycle(di_adjlist)
+    for i in range(len(EulerianCycle)):
+        print(EulerianCycle[i])
+    #for e in L:
+    #    print("\t",e)
     print("############################")
-    print(L)
+    #print(L)
+
 
 if __name__ == '__main__':
     main()
