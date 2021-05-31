@@ -1,4 +1,4 @@
-from networkx.algorithms.components import connected
+from networkx.algorithms import *
 from networkx.readwrite import adjlist
 from numpy import integer
 import osmnx as ox
@@ -56,11 +56,24 @@ def main1():
     print("'" + place + "'", "has", number_of_nodes, "of nodes and",  len(city.edges()), "edges")
     print("isEulerian :", elr.isEulerian(adj))
 
+def This_Is_Reality(city):
+    new_city = city.to_undirected()
+    if not(ox.is_eulerian(new_city)):
+        new_city = ox.eulerize(new_city)  
+    L = list(ox.eulerian_circuit(new_city))# On peut ajouter le noeud de départ
+    return L
+#Stratégie:
+# - Diviser notre graphe en plusieurs graph (multiple du nbr de thread) ---HARD---???
+# - Compter l'importance total de chaque graph et attribué en fonction un nbr de machine ---EASY---
+# - rediviser en fonction du nbr de machine qu'on attribue ---HARD---???
+# - puis calculer le chemin eulerien sur chaque graph  ---DONE---
+
 def main():
     #adjlist = [[(1,1),(6,8),(2,3)],[(0,1),(2,1),(4,1)],[(1,1),(3,1),(0,3)],[(2,1),(4,1)],[(3,1),(5,1),(1,1)],[(4,1),(6,1)],[(5,1),(0,8)]]
     #path = dijkstra(0,6, adjlist)
     #print("path found with dijkstra:")
     #print(path)
+
     """
     path = dijkstra(0,4,adjlist)
     print(path)
@@ -69,25 +82,25 @@ def main():
     print("adjlist after repair:")
     print(adjlist) """
 
-    
-    
-    """
     place = 'poil'
     city = load(place)
     if city == None:
         city = ox.graph_from_place(place)
         save(city, place)
-    city = ox.utils_graph.remove_isolated_nodes(city)
-#    (Trad, di_adjlist) =  DiGraph_to_Di_adjlist(city)
-#    print(di_adjlist)
-    print(list(city.edges(data=True))) """
+    #city = ox.utils_graph.remove_isolated_nodes(city)
+    L = This_Is_Reality(city)
+    print(L)
+    #(Trad, di_adjlist) =  DiGraph_to_Di_adjlist(city)
+    #print(di_adjlist)
+    #print(list(city.edges(data=True)))
     #adjlist = [[(1,1),(3,1)],[(0,1),(2,1),(3,1),(4,1)],[(1,1),(3,1)],[(2,1),(0,1),(1,1),(4,1)],[(1,1),(3,1)]]
+    #to adjlist = [[(1,1,0),(3,1,2)],[(0,1,4),(2,1,0),(3,1,0),(4,1,5)],[(1,1,10),(3,1,7)],[(2,1,8),(0,1,7),(1,1,6),(4,1,1)],[(1,1,2),(3,1,4)]] [[(v,l,n),...],...]
     #find.remove_edge(adjlist, 0, 1, 1)
     #print(adjlist)
 
     #L = find.Euler(adjlist)
     #print(L)
-
+    """
     di_adjlist = [(1,[(4,1)]), 
     (-1,[(0,1),(2,1)]),
     (0, [(3,1),(0,1)]),
@@ -110,6 +123,7 @@ def main():
     #    print("\t",e)
     print("############################")
     #print(L)
+    """
 
 
 if __name__ == '__main__':
