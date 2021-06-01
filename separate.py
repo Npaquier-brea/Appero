@@ -1,18 +1,80 @@
 import networkx as nx
 import osmnx as ox
 import matplotlib.pyplot as plt
+import numpy as np
+import threading
 
-def read():
+class myThread (threading.Thread):
+    def __init__(self, threadID, liste):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.liste = liste
+
+    def run(self):
+        threadLock.acquire()
+        printCity(self.liste)
+        threadLock.release()
+
+def printCity(L):
+    for i in L:
+        print(i)
+    print("----------------------")
+
+def read(): #modifier le read
     L = []
     f = open("quartier.txt", "r")
     for line in f:
         #tmp = line.split(" ")
         #for quart in tmp:
             #L.append(quart)
-        L.append(line[:-1])
+        if line[len(line) - 1] == "\n":
+            L.append(line[:-1])
+        else:
+            L.append(line)
     return L
 
-def adjlist(G):
+fileName = "nbrThreads.txt"
+file = open(fileName, "r")
+nbThreads = None
+for elt in file:
+    nbThreads = int(elt) 
+threadLock = threading.Lock()
+threads = []
+tmpList = read()
+dividedCity = len(tmpList) // nbThreads
+count = 0
+if len(tmpList) % nbThreads == 0:
+    for i in range(0, nbThreads):
+        L = []
+        for j in range(0, dividedCity):
+            L.append(tmpList[count])
+            count += 1
+        thread = myThread(1, L)
+        thread.start()
+        threads.append(thread)
+else:
+    for i in range(0, nbThreads - 1):
+        L = []
+        for j in range(0, dividedCity):
+            L.append(tmpList[count])
+            count += 1
+        thread = myThread(1, L)
+        thread.start()
+        threads.append(thread)
+    L = []
+    for w in range(count, len(tmpList)):
+        L.append(tmpList[count])
+        count += 1
+    thread = myThread(1, L)
+    thread.start()
+    threads.append(thread)
+
+for t in threads:
+    t.join()
+print ("Exiting Main Thread")
+            
+
+'''def adjlist(G):
     adj = []
     nodes = list(G.nodes)
     for src, dst in G.adjacency():
@@ -39,18 +101,8 @@ def girvan(G):
         l1 = len(c)
         print('The number of connected components are ', l)
 
-    return c
-#L = read()
-#print(L)
+    return c '''
 
-place = 'Snowdon    Cote-des-Neiges–Notre-Dame-de-Grace, Montreal'
-tmpcity = ox.graph_from_place(place,network_type="drive")
-tmpcity = ox.utils_graph.remove_isolated_nodes(tmpcity)
-city = tmpcity.to_undirected()
-print(city.order())
-print(7/3)
-print(7//3)
-ox.plot_graph(city)
 """
 c = girvan(city)
 sum_len = 0
